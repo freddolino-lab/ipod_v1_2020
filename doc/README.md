@@ -79,3 +79,7 @@ Having entered the singularity environment, the test case could then be run by e
 `cd /testdata; python /src_for_distrib_dec2020/drivers/run_all.py all_conditions.txt > test.log 2> test.err`
 
 After the run is complete, the results should be checked using the procedure described [above](#example-data). 
+
+# Postprocessing tools
+
+We also include in this source code distribution the python programs needed for key postprocessing tasks from the accompamying manuscripts, namely those used for calling individual TF binding peaks, calling extended protein occupancy domains (EPODs), and for plotting and consensus clustering of TFs based on their binding profiles. Documentation for these programs is included in the postprocessing.md file in this directory. 
