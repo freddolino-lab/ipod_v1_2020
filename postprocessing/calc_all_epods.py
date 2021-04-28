@@ -41,8 +41,8 @@ def do_epod_calls(gr_file_in, outprefix):
 
     do_runningavg_opt(gr_file_in, med512_file, width=513,genomelength=4641652)
     do_runningavg_opt(gr_file_in, med256_file, width=257,genomelength=4641652)
-    identify_epods_v3(med512_file, med256_file, 1024, output_epod_file,delta=25)
-    identify_epods_v3(med512_file, med256_file, 1024, output_epod_file_strict,delta=10)
+    identify_epods_v3_opt(med512_file, med256_file, 1024, output_epod_file,delta=25)
+    identify_epods_v3_opt(med512_file, med256_file, 1024, output_epod_file_strict,delta=10)
 
     print "finished EPOD processing for %s" % outprefix
 
