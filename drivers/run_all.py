@@ -18,7 +18,7 @@ PR_AL_CMD = "python %s/run_all_alignments.py %%s" % SRCDIR
 BS_CMD = "python %s/run_all_bootstraps.py %%s" % SRCDIR
 QUANT_CMD = "python %s/analyze_bootstraps/process_bs_files.py %%s" % SRCDIR
 QC_CMD = "python %s/run_all_qc.py %%s" % SRCDIR
-QNORM_CMD = "python %s/analyze_bootstraps/qnorm_bs_files_global.py %%s" % SRCDIR
+QNORM_CMD = "python %s/analyze_bootstraps/qnorm_bs_files.py %%s" % SRCDIR
 
 # first just read the set of files to be acted upon
 #TARGETS_FILE="all_conditions.txt"
@@ -74,11 +74,16 @@ for dirname,confname in zip(all_dirs, all_confs):
     os.chdir(BASEDIR)
 
 # quantile normalize all of the samples
-print "Doing global quantile normalization"
+print "Doing quantile normalization"
 print "=============================================="
-conf_files_full = ",".join([os.path.join(i,j) for i,j in zip(all_dirs, all_confs)])
-print QNORM_CMD % conf_files_full
-subprocess.call(QNORM_CMD % conf_files_full, shell=True)
+for dirname,confname in zip(all_dirs, all_confs):
+    print ''
+    print 'Working on sample name %s' % dirname
+    print '----------------------------------'
+    #print QNORM_CMD % conf_files_full
+    os.chdir(dirname)
+    subprocess.call(QNORM_CMD % confname, shell=True)
+    os.chdir(BASEDIR)
 
 print "\nEntering quantitation step"
 print "=============================================="
