@@ -6,7 +6,6 @@
 # in addition, each of those directories should have a properly filled out read_manifest.txt, and must have raw/, aligned/, and bootstrap/ directories 
 # already set up
 # we then do a standard set of bootstrapping where we generate both occupancy traces for the original data, and 200 boostrap replicates, at 5 bp resolution
-# note: for testing purposes ONLY the number of bootstrap replicates has been changed from 200 to 10. THIS SHOULD BE CHANGED BACK
 
 # the following external programs need to be installed and in the PATH:
 #  samtools (tested with 0.1.19-96b5f2294a -- newer versions may not work!)
@@ -33,7 +32,7 @@ BS_BOOT_THREADS = conf_dict["bootstrap"]["bootstrap_threads"]
 SRCDIR = os.path.dirname( os.path.realpath( __file__ ) )
 BINDIR=os.path.join( SRCDIR, "bootstrapping")
 PARSE_CMD = "python %s/bootstrap_sam_file.py parse --paired %s %s"
-SAMPLE_CMD = "python %s/bootstrap_sam_file.py  sample %s.npy %s.npy 4641652 --num_samples 10 --resolution 5"
+SAMPLE_CMD = "python %s/bootstrap_sam_file.py  sample %s.npy %s.npy 4641652 --num_samples 200 --resolution 5"
 ORIG_CMD = "python %s/bootstrap_sam_file.py  sample %s.npy %s.npy 4641652 --identity --resolution 5"
 
 
