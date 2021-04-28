@@ -2,7 +2,7 @@
 
 # Introduction
 
-This source tree contains a complete system suitable for running read processing and scoring on IPOD data sets, using version 1.0 of the processing pipeline (equivalent to that used in [this paper](https://doi.org/10.1101/2020.01.29.924811)). Note that several hardcoded choices in the present version make it suitable only for analysis of data from the *E. coli* MG1655 strain, using the U00096.3 reference genome. Ongoing development is in progress for a more general purpose version of these workflows.
+This source tree contains a complete system suitable for running read processing and scoring on IPOD data sets, using version 1.2 of the processing pipeline (currently in revision; an outgrowth of the methods described in [this paper](https://doi.org/10.1101/2020.01.29.924811)). Note that several hardcoded choices in the present version make it suitable only for analysis of data from the *E. coli* MG1655 strain, using the U00096.3 reference genome. Ongoing development is in progress for a more general purpose version of these workflows.
 
 # Installation
 
@@ -68,9 +68,9 @@ Note that while the data sets used in this test case are relatively small, they 
 
 # Containerized version
 
-As an alternative to allow rapid and reproducible setup of the IPOD-HR postprocessing pipeline described here, we have also made a [singularity container](https://drive.google.com/file/d/1CwyNOqLEwR5uuFRIEXq2Trbzce9uYED3/view?usp=sharing) available that provides a complete, self-enclosed environment for data analysis. The environment can be entered by calling `singularity run ipod_v1.0.sif`; the IPOD-HR analysis source code tree will then be mounted at `/src_for_distrib_dec2020`. We highly recommend familiarizing yourself with fundamental concepts in singularity containers prior to using this environment; in particular, it is likely necessary to mount the directory containing your data tree so that it is accessible within the container. As an example session, running on an Ubuntu 14.04 host operating system with singularity version 3.7.1 as the guest, the singularity container could be invoked with
+As an alternative to allow rapid and reproducible setup of the IPOD-HR postprocessing pipeline described here, we have also made a [singularity container](https://drive.google.com/file/d/1CwyNOqLEwR5uuFRIEXq2Trbzce9uYED3/view?usp=sharing) available that provides a complete, self-enclosed environment for data analysis. The environment can be entered by calling `singularity run ipod_v1.2.sif`; the IPOD-HR analysis source code tree will then be mounted at `/src_for_distrib_dec2020`. We highly recommend familiarizing yourself with fundamental concepts in singularity containers prior to using this environment; in particular, it is likely necessary to mount the directory containing your data tree so that it is accessible within the container. As an example session, running on an Ubuntu 14.04 host operating system with singularity version 3.7.1 as the guest, the singularity container could be invoked with
 
-`singularity run -B /data/petefred/TEST_MINIMAL:/testdata -B /run/shm:/run/shm ipod_v1.0.sif`
+`singularity run -B /data/petefred/TEST_MINIMAL:/testdata -B /run/shm:/run/shm ipod_v1.2.sif`
 
 Here `/data/petefred/TEST_MINIMAL` is the location of the test data described above, which will then be mounted at `/testdata` in the container environment. The `-B /run/shm:/run/shm` motif is necessary to permit proper functioning of the python `multiprocessing` module on an Ubuntu host, and may not be necessary in other environments (e.g., we have not found it to be needed on a Red Hat host OS). 
 
