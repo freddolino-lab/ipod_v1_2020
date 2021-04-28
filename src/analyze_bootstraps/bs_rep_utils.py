@@ -204,15 +204,15 @@ def calc_v2x_chipsub_mats( ipod_mat, inp_mat, chip_mat, input_spline_trace):
 
     return ipod_minus_chip_90perclognorm
 
-def get_loess_sub_mat(mat_a, mat_b, lscalefac, plotfile=None):
-    # apply a function equivalent to loess_subtract_counts to calculate differences between two matrices
-    # acting column-wise, we loess normalize mat_b and then subtract it from mat_a
+def get_lin_sub_mat(mat_a, mat_b, plotfile=None, minperc=98.0):
+    # apply a linear regression to subtract predictions based on mat_b from mat_a
+    # we apply a constrained linear regression which must pass through the origin, acting only on points with mat_b> minval, and
+    #  then use a slope that keeps 95% of those high-ChIP samples below the line
+    # minperc is the minimum percentile of the chip data (mat_b) to use
 
+    minval = scipy.stats.scoreatpercentile(mat_b, minperc)
+    print "Minval is %f" % minval
     out_mat = numpy.zeros_like(mat_a)
-    allinds = range(mat_a.shape[0])
-    randinds = range(0,mat_a.shape[0],mat_a.shape[0]/500) + [mat_a.shape[0]-1]
-    randinds.sort()
-    ordered_inds = numpy.array(randinds)
 
     if plotfile is not None:
         pylab.figure()
@@ -227,21 +227,20 @@ def get_loess_sub_mat(mat_a, mat_b, lscalefac, plotfile=None):
 
         col_a = mat_a[:,col_i]
         col_b = mat_b[:,col_i]
-        sortord = numpy.argsort(col_b)
 
-        col_a_forloess = col_a[sortord][ordered_inds]
-        col_b_forloess = col_b[sortord][ordered_inds]
+        fitslope =do_lin_fit(col_b, col_a, minval)
+        print "Using slope of %f" % fitslope
+        predvals = do_lin_interpolation_array(col_b,fitslope, 0)
 
-        do_loess_fit(col_b_forloess, col_a_forloess,'myfit')
-        predvals = numpy.array(do_loess_interpolation_array(list(col_b),'myfit') )
+        predvals = numpy.fmax(predvals, 0.0)
 
-        newvals = col_a - lscalefac * numpy.maximum(numpy.zeros_like(predvals), predvals)
-        pred_for_plot = numpy.maximum(numpy.zeros_like(predvals[numpy.argsort(col_b)]), predvals[numpy.argsort(col_b)])
+        newvals = col_a - predvals
+
         print col_b.shape
         print predvals.shape
         print "***"
         if (plotfile is not None) and (col_i == 0):
-            pylab.plot(col_b[numpy.argsort(col_b)], lscalefac * pred_for_plot, 'r-', linewidth=2.5)
+            pylab.plot(col_b[numpy.argsort(col_b)], predvals[numpy.argsort(col_b)], 'r--', linewidth=3)
             pylab.savefig(plotfile + "_main.png")
             pylab.figure()
             pylab.hexbin( col_a, newvals, bins='log', cmap=pylab.get_cmap("Blues"))
@@ -254,7 +253,7 @@ def get_loess_sub_mat(mat_a, mat_b, lscalefac, plotfile=None):
             pylab.colorbar()
             pylab.xlabel('Log$_2$ ChIP vs. input')
             pylab.ylabel('ChIP-subtracted IPOD-HR')
-            pylab.savefig(plotfile + "_chipsub.png")
+            pylab.savefig(plotfile + "_chipsub_lin.png")
 
         #if len(newvals.shape) == 1:
         #    newvals = newvals.reshape(-1,1)
@@ -286,18 +285,16 @@ def calc_v6_chipsub_mats( ipod_vs_inp_mat, chip_vs_inp_mat, plotfile=None):
     # we return a matrix of mxn values corresponding to the chipsub value at each replicate, containing the rscores
     # recall that we want as input the ipod_vs_inp and chip_vs_inp log ratios
 
-    # constants for the v6 method
-    V6_LSCALEFAC=1.1
-
-
     # first calculte the count subtraction
-    # this immitates the ipod_utils.loess_subtract-counts function
+    # this uses a linear fit that keeps the majority of the high-ChIP data below the line
 
-    sub_mat = get_loess_sub_mat( ipod_vs_inp_mat, chip_vs_inp_mat, V6_LSCALEFAC, plotfile )
+    sub_mat = get_lin_sub_mat( ipod_vs_inp_mat, chip_vs_inp_mat, plotfile )
 
 
     # following line is for DEBUG ONLY
     numpy.save('sub_mat.npy',sub_mat)
+
+    # now convert to robust z-scores and return
     zscore_mat = get_rzscores_bycol( sub_mat )
 
     return zscore_mat
@@ -461,28 +458,40 @@ def calc_signed_log10p(vals):
     pvals_signed = (-1 * pvals_log)
     return pvals_signed
 
-def do_loess_fit(xdat, ydat, loessname, width=0.25):
+def do_lin_fit(xdat, ydat, minval):
   """
-  Put a loess fit into the r namespace with name loessname
-  """
-
-  robjects.r.assign('x', robjects.FloatVector(xdat))
-  robjects.r.assign('y', robjects.FloatVector(ydat))
-  robjects.r('%s = loess(y ~ x, span=%f)' % (loessname, width))
-
-
-def do_loess_interpolation(xval, loessname):
-  """
-  Return the loess-predicted value from a loess object at xval
+  do a linear regression on the selected data where xdat>minval, 
+  and find and return the minimal slope for which 95% of the fitted data are below the line
   """
 
-  return robjects.r("predict(%s, %f)" % (loessname, xval))
+  print "Doing fit with minval %f" % (minval,)
 
-def do_loess_interpolation_array(xvals, loessname):
+  goodflags = (xdat > minval)
+
+  robjects.r.assign('x', robjects.FloatVector(xdat[goodflags]))
+  robjects.r.assign('y', robjects.FloatVector(ydat[goodflags]))
+  robjects.r('my.linfit = lm(y ~ x+0)')
+  robjects.r('slope.init=coef(my.linfit)')
+  robjects.r('print(slope.init)')
+  robjects.r('while ( sum( y > (slope.init * x) ) > (0.05 * length( y ) ) ) { slope.init = slope.init + 0.00001  } ')
+  v=robjects.r('slope.init')
+
+  print(v)
+  return numpy.asarray(v)
+
+def do_lin_interpolation(xval, slope, padding):
   """
-  Return the loess-predicted value from a loess object at each point in xvals
+  Return the predicted value for xval based on a linear regression with slope slope and intercept 0, plus padding
+  We return 0 for negative values of x
   """
 
-  robjects.r.assign('tmpx',robjects.FloatVector(xvals))
-  return robjects.r("predict(%s,tmpx)" % loessname)
+  return ((xval * slope + padding) > 0) * (xval * slope + padding)
+
+def do_lin_interpolation_array(xvals, slope, padding):
+  """
+  Return the predicted value for each point in xvals based on a linear regression with slope slope and intercept 0, plus padding
+  We return 0 for negative values of x
+  """
+
+  return ((xvals * slope + padding) > 0) * (xvals * slope + padding)
 

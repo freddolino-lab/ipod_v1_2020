@@ -20,7 +20,7 @@ G_LOCS = numpy.arange(0,4641652,5)
 #  -v6 rzscore signal
 #  -v6 signed log p values
 #  For each of these, I generate the observed value plus a 95% CI
-# we assume that files called PREFIX_gqnorm.npy exist
+# we assume that files called PREFIX_qnorm.npy exist
 #  and have the quantile normalized occupancy data
 
 def calc_ipod_inp_lograts( ipod_orig_files, ipod_bs_files, inp_orig_files, inp_bs_files, outprefix, spl_vec):
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     inp_prefixes = conf_dict['inp']['sample_names']
 
     orig_pref,orig_suff = os.path.splitext(orig_suffix)
-    orig_name = orig_pref + '_gqnorm' + orig_suff
+    orig_name = orig_pref + '_qnorm' + orig_suff
 
     inp_orig_files = [ os.path.join( inp_dir, bs_dir, x + orig_name) for x in inp_prefixes]
     input_spline_trace = get_spl_norm(G_LOCS, inp_orig_files, 5)
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     ipod_prefixes = conf_dict['ipod']['sample_names']
 
     bs_pref,bs_suff = os.path.splitext(bs_suffix)
-    bs_name = bs_pref + '_gqnorm' + bs_suff
+    bs_name = bs_pref + '_qnorm' + bs_suff
 
     ipod_orig_files = [ os.path.join( ipod_dir, bs_dir, x + orig_name) for x in ipod_prefixes]
     ipod_bs_files = [ os.path.join( ipod_dir, bs_dir, x + bs_name) for x in ipod_prefixes]
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     chip_vs_inp_boot = load_tall(out_prefix + "_chip_vs_inp_lograt_bs.npy")
     #debug numpy.save('debug_chip_boot_mat.npy', chip_vs_inp_boot)
 
-    v6_mat_orig = calc_v6_chipsub_mats(ipod_vs_inp_orig, chip_vs_inp_orig, plotfile = out_prefix + "_v6_loess_sub.png") 
+    v6_mat_orig = calc_v6_chipsub_mats(ipod_vs_inp_orig, chip_vs_inp_orig, plotfile = out_prefix + "_v6_linfit_sub.png") 
     v6_mat_boot = calc_v6_chipsub_mats(ipod_vs_inp_boot, chip_vs_inp_boot) 
     #debug numpy.save('debug_v6_boot_mat.npy', v6_mat_boot)
 
