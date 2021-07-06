@@ -296,9 +296,10 @@ def identify_epods_v3(epod_data, percentile_data, min_epod_length, epod_outfile,
 
   Each data input should be a file (NOT a vector)
   We then look for all contiguous regions of length at least min_epod_length  
+    that have a median occupancy above the (100 - delta-th) percentile in percentile_data
   A file (epod_outfile) containing the locations of epods will also be written
 
-  If lpod is true, then we instead look for similar regions under 25th percentile occupancy
+  If lpod is true, then we instead look for similar regions under delta-th percentile occupancy
 
   All units are IN BASE PAIRS
 
@@ -444,6 +445,7 @@ def identify_epods_v3_opt(epod_data, percentile_data, min_epod_length, epod_outf
 
   Each data input should be a file (NOT a vector)
   We then look for all contiguous regions of length at least min_epod_length  
+    that have a median occupancy above the (100 - delta-th) percentile in percentile_data
   A file (epod_outfile) containing the locations of epods will also be written
 
   All units are IN BASE PAIRS
@@ -482,9 +484,9 @@ def identify_epods_v3_opt(epod_data, percentile_data, min_epod_length, epod_outf
 
   print "Searching for regions at least %i bp long with a median z score above %f" % (min_epod_length, epod_cutoff)
 
-  epod_pot_arr = numpy.zeros_like(epod_vec) - 1000 ;# contains the values of all 1024 bp windows that are potential epods
+  epod_pot_arr = numpy.zeros_like(epod_vec) - 1000 ;# contains the values of all min_epod_length windows that are potential epods
   # we follow a two-pass approach to find epods
-  # first we go through the raw data and find all 1024 bp windows where the
+  # first we go through the raw data and find all min_epod_length bp windows where the
   #   median value is at least percentile_vec
   # Each time we find such a window, we add to epod_pot_arr the score at that location
   #  this way we know the relative heights of various windows

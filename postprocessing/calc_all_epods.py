@@ -32,8 +32,8 @@ def do_epod_calls(gr_file_in, outprefix):
 
     print "started EPOD processing for %s" % outprefix
 
-    med512_file = "%s_median512.gr" % outprefix
-    med256_file = "%s_median256.gr" % outprefix
+    med512_file = "%s_mean512.gr" % outprefix
+    med256_file = "%s_mean256.gr" % outprefix
     output_epod_file = "%s_epods_v3.gr" % outprefix
     output_peak_file = "%s_epod_locs_v3.txt" % outprefix
     output_epod_file_strict = "%s_epods_strict_v3.gr" % outprefix
